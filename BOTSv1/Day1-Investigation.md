@@ -17,3 +17,32 @@ index="botsv1" | stats count by sourcetype | sort - count
 
 ## Conclusion
 The environment has strong endpoint visibility (Sysmon, Windows Event Logs) combined with network-level detection (Suricata, Splunk Stream). We are well-equipped to track an attacker from initial network compromise down to host-level execution.
+
+## Host Inventory & Domain Infrastructure
+
+Query:
+\`\`\`spl
+index="botsv1" | stats count by host | sort - count
+\`\`\`
+
+Key Assets Identified:
+* **Domain:** `waynecorpinc.local`
+* **Endpoints:** `we8105desk` (Workstation)
+* **Servers:** `we1149srv`, `we9041srv` (Web/App Server)
+* **Security Monitoring:** `suricata-ids.waynecorpinc.local`
+
+## Note on User Account Extraction
+Standard `by user` aggregation yields incomplete data due to field naming variance across sourcetypes. Accurate user enumeration requires targeting Windows Security Event ID `4624` (`Account_Name`).
+
+## User Account Enumeration
+Standard `by user` aggregation yields incomplete data due to field naming variance across sourcetypes. Accurate user enumeration requires targeting Windows Security Event ID `4624` (Successful Logon).
+
+**Query:**
+\`\`\`spl
+index="botsv1" sourcetype="wineventlog:security" EventCode=4624 | stats count by Account_Name | sort - count
+\`\`\`
+
+**Key Accounts Identified:**
+* **Human User:** `bob.smith` (The primary endpoint user)
+* **Privileged Account:** `Administrator` (High volume of authentications; requires monitoring for brute-force or lateral movement)
+* **Machine Accounts:** `WE9041SRV$`, `WE8105DESK$` (Standard Active Directory computer accounts)
