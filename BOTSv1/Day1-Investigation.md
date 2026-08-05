@@ -34,8 +34,6 @@ Key Assets Identified:
 ## Note on User Account Extraction
 Standard `by user` aggregation yields incomplete data due to field naming variance across sourcetypes. Accurate user enumeration requires targeting Windows Security Event ID `4624` (`Account_Name`).
 
-## User Account Enumeration
-Standard `by user` aggregation yields incomplete data due to field naming variance across sourcetypes. Accurate user enumeration requires targeting Windows Security Event ID `4624` (Successful Logon).
 
 **Query:**
 \`\`\`spl
