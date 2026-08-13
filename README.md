@@ -25,7 +25,7 @@ Below is an indexed summary of my key investigations. Click on the hyperlinks in
 
 | Platform | Case Identifier & Category | Primary Threat & Summary | Full Investigation Report |
 | :--- | :--- | :--- | :--- |
-| **LetsDefend** | SOC342 - CVE-2025-53770<br>*(Web Attack Intrusion)* | Unauthenticated Remote Code Execution (RCE) on SharePoint Server using a spoofed referer bypass. | [View Full Report](LetsDefend/SOC342-CVE-2025-53770/README.md) |
+| **LetsDefend** | SOC342 - CVE-2025-53770<br>*(Web Attack Intrusion)* | Unauthenticated Remote Code Execution (RCE) on SharePoint Server using a spoofed referer bypass. | [View Full Report](LetsDefend/SOC342-CVE-2025-53770-SharePoint-RCE/README.md) |
 | **Splunk BOTSv1** | BOTSv1 - Day 1<br>*(Threat Hunting / SIEM)* | Initial endpoint reconnaissance and scanning behavior targeting active domain assets. | [View Day 1 Report](BOTSv1/Day1-Investigation.md) |
 |  | BOTSv1 - Day 2<br>*(Web Application Attack)* | SQL Injection (SQLi) and cross-site scripting (XSS) analysis on public-facing servers. | [View Day 2 Report](BOTSv1/Day2-WebAttack.md) |
 | | BOTSv1 - Day 3<br>*(Lateral Movement)* | Lateral movement detection using compromised domain administrator credentials across internal subnets. | [View Day 3 Report](BOTSv1/Day3-LateralMovement.md) |
