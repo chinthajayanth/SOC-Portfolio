@@ -27,7 +27,7 @@ Below is an indexed summary of my key investigations. Click on the hyperlinks in
 | --- | --- | --- |
 |   | Target | Investigation |
 | Platform | Vulnerability Category Primary Threat & Summary | Report |
-| LetsDefendSOC342 - CVE- Web Attack / Critical zero-day |   | View Full |
+| LetsDefend/SOC342 - CVE- Web Attack   |   | View Full |
 |   | Intrusion unauthenticated Remote 2025-53770 | Report |
 |   | Code Execution (RCE) on |   |
 |   | SharePoint Server using a |   |
