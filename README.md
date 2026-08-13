@@ -23,38 +23,14 @@ I am an analytical, detail-oriented Security Operations Center (SOC) Analyst spe
 
 Below is an indexed summary of my key investigations. Click on the hyperlinks in the table to view the full, detailed technical write-ups.
 
-|   | Case Identifier / | Full |
-| --- | --- | --- |
-|   | Target | Investigation |
-| Platform | Vulnerability Category Primary Threat & Summary | Report |
-| LetsDefend/SOC342 - CVE- Web Attack   |   | View Full |
-|   | Intrusion unauthenticated Remote 2025-53770 | Report |
-|   | Code Execution (RCE) on |   |
-|   | SharePoint Server using a |   |
-|   | spoofed referer bypass. |   |
-| Splunk | BOTSv1 - Day 1 Threat Initial endpoint | View Day 1 |
-| BOTS | Hunting / | reconnaissance and scanning Report |
-|   | SIEM behavior targeting active |   |
-|   | domain assets. |   |
-| Splunk | BOTSv1 - Day 2Web SQL Injection (SQLi) and | View Day 2 |
-| BOTS | Application cross-site scripting (XSS) | Report |
-|   | Attack analysis on public-facing |   |
-|   | servers. |   |
-| Splunk | BOTSv1 - Day 3Lateral Lateral movement detection | View Day 3 |
-| BOTS | Movement using compromised domain | Report |
-|   | administrator credentials |   |
-|   | across internal subnets. |   |
-| Splunk | BOTSv1 - Day 4Endpoint | Process auditing and registry View Day 4 |
-| BOTS | Persistence modification analysis | Report |
-
-
-|   | Case Identifier / | Full |
-| --- | --- | --- |
-|   | Target | Investigation |
-| Platform | Vulnerability Category Primary Threat & Summary | Report |
-|   | showing the establishment of remote system persistence. |   |
-| Splunk | BOTSv1 - Day 5Data Identifying unauthorized | View Day 5 |
-| BOTS | Exfiltration database queries and data staging pointing to anomalous network exfiltration. | Report |
+| Platform | Case Identifier & Category | Primary Threat & Summary | Full Investigation Report |
+| :--- | :--- | :--- | :--- |
+| **LetsDefend** | SOC342 - CVE-2025-53770<br>*(Web Attack Intrusion)* | Unauthenticated Remote Code Execution (RCE) on SharePoint Server using a spoofed referer bypass. | [View Full Report](LetsDefend/SOC342-CVE-2025-53770) |
+| **Splunk BOTS** | BOTSv1 - Day 1<br>*(Threat Hunting / SIEM)* | Initial endpoint reconnaissance and scanning behavior targeting active domain assets. | [View Day 1 Report](BOTSv1/Day1-Investigation.md) |
+| **Splunk BOTS** | BOTSv1 - Day 2<br>*(Web Application Attack)* | SQL Injection (SQLi) and cross-site scripting (XSS) analysis on public-facing servers. | [View Day 2 Report](BOTSv1/Day2-WebAttack.md) |
+| **Splunk BOTS** | BOTSv1 - Day 3<br>*(Lateral Movement)* | Lateral movement detection using compromised domain administrator credentials across internal subnets. | [View Day 3 Report](BOTSv1/Day3-LateralMovement.md) |
+| **Splunk BOTS** | BOTSv1 - Day 4<br>*(Endpoint Persistence)* | Process auditing and registry modification analysis showing the establishment of remote system persistence. | [View Day 4 Report](BOTSv1/Day4-Persistence.md) |
+| **Splunk BOTS** | BOTSv1 - Day 5<br>*(Data Exfiltration)* | Identifying unauthorized database queries and data staging pointing to anomalous network exfiltration. | [View Day 5 Report](BOTSv1/Day5-DataExfiltration.md) |
 
 ## Repository Directory Structure
 
