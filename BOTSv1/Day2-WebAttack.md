@@ -65,9 +65,9 @@ index="botsv1" sourcetype="stream:http" dest_ip="192.168.250.70" src_ip="40.80.1
 ---
 
 ## Evidence & Screenshots
-* **Traffic Timeline Spike:** `![Traffic Spike](Screenshots/web_traffic_spike.png)`
-* **Attacker Source IP Table:** `![Attacker IP](Screenshots/attacker_ip.png)`
-* **Tool User-Agent Analysis:** `![User Agent](Screenshots/attacker_user_agent.png)`
+* **Traffic Timeline Spike:** ![Traffic Spike](Screenshots/web_traffic_spike.png)
+* **Attacker Source IP Table:** ![Attacker IP](Screenshots/attacker_ip.png)`
+* **Tool User-Agent Analysis:** ![User Agent](Screenshots/attacker_user_agent.png)
 
 ---
 
