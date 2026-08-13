@@ -26,11 +26,14 @@ Below is an indexed summary of my key investigations. Click on the hyperlinks in
 | Platform | Case Identifier & Category | Primary Threat & Summary | Full Investigation Report |
 | :--- | :--- | :--- | :--- |
 | **LetsDefend** | SOC342 - CVE-2025-53770<br>*(Web Attack Intrusion)* | Unauthenticated Remote Code Execution (RCE) on SharePoint Server using a spoofed referer bypass. | [View Full Report](LetsDefend/SOC342-CVE-2025-53770-SharePoint-RCE/README.md) |
-| **Splunk BOTSv1** | BOTSv1 - Day 1<br>*(Threat Hunting / SIEM)* | Initial endpoint reconnaissance and scanning behavior targeting active domain assets. | [View Day 1 Report](BOTSv1/Day1-Investigation.md) |
-|  | BOTSv1 - Day 2<br>*(Web Application Attack)* | SQL Injection (SQLi) and cross-site scripting (XSS) analysis on public-facing servers. | [View Day 2 Report](BOTSv1/Day2-WebAttack.md) |
-| | BOTSv1 - Day 3<br>*(Lateral Movement)* | Lateral movement detection using compromised domain administrator credentials across internal subnets. | [View Day 3 Report](BOTSv1/Day3-LateralMovement.md) |
-| | BOTSv1 - Day 4<br>*(Endpoint Persistence)* | Process auditing and registry modification analysis showing the establishment of remote system persistence. | [View Day 4 Report](BOTSv1/Day4-Persistence.md) |
-|  | BOTSv1 - Day 5<br>*(Data Exfiltration)* | Identifying unauthorized database queries and data staging pointing to anomalous network exfiltration. | [View Day 5 Report](BOTSv1/Day5-DataExfiltration.md) |
+### Splunk BOTSv1
+| Investigation Phase | Primary Threat & Summary | Report |
+| :--- | :--- | :--- |
+| **Day 1: Threat Hunting** | Initial endpoint reconnaissance and scanning behavior targeting active domain assets. | [View Day 1 Report](BOTSv1/Day1-Investigation.md) |
+| **Day 2: Web Attack** | SQL Injection (SQLi) and cross-site scripting (XSS) analysis on public-facing servers. | [View Day 2 Report](BOTSv1/Day2-WebAttack.md) |
+| **Day 3: Lateral Movement** | Lateral movement detection using compromised domain administrator credentials across internal subnets. | [View Day 3 Report](BOTSv1/Day3-LateralMovement.md) |
+| **Day 4: Persistence** | Process auditing and registry modification analysis showing the establishment of remote system persistence. | [View Day 4 Report](BOTSv1/Day4-Persistence.md) |
+| **Day 5: Data Exfiltration** | Identifying unauthorized database queries and data staging pointing to anomalous network exfiltration. | [View Day 5 Report](BOTSv1/Day5-DataExfiltration.md) |
 
 ## Repository Directory Structure
 
