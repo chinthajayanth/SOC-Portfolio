@@ -44,3 +44,25 @@ index="botsv1" sourcetype="wineventlog:security" EventCode=4624 | stats count by
 * **Human User:** `bob.smith` (The primary endpoint user)
 * **Privileged Account:** `Administrator` (High volume of authentications; requires monitoring for brute-force or lateral movement)
 * **Machine Accounts:** `WE9041SRV$`, `WE8105DESK$` (Standard Active Directory computer accounts)
+
+
+### Asset Inventory Table
+
+| Hostname | Primary IP | Role | Key Log Sourcetypes | Verification Method / Query |
+| :--- | :--- | :--- | :--- | :--- |
+| **we1149srv** | `192.168.250.70` | IIS Web Server (Target) | `iis`, `stream:http`, `XmlWinEventLog` | Correlated HTTP destination traffic count with active hostnames processing local IIS web events. |
+| **we9041srv** | `192.168.250.100` | Windows Server / Active Directory | `WinEventLog:Security`, `XmlWinEventLog` | Identified via AD internal service accounts and local source address bindings. |
+| **we8105desk** | `192.168.250.20` | Windows Workstation | `XmlWinEventLog:Microsoft-Windows-Sysmon/Operational` | Verified using custom regex XML extraction on Sysmon Event ID 3 (Network Connection) logs. |
+
+---
+
+### Programmatic Asset Verification Queries
+
+#### 1. Discovering the Workstation IP (`we8105desk`)
+* **Objective:** Extract the true internal IP address of the workstation when default field parsers fail to isolate XML nested elements.
+* **SPL Query:**
+  ```splunk
+  index="botsv1" host="we8105desk" 
+  | rex field=_raw "<Data Name='DestinationIp'>(?<Extracted_DestIp>[^<]+)"
+  | stats count by host, Extracted_DestIp
+  | sort - count
