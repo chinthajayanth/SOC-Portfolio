@@ -1,9 +1,7 @@
 
 ## Security Operations & Incident Response Portfolio
 
-Welcome to my professional security operations and threat-hunting portfolio. This repository serves as a showcase of my hands-on experience as a SOC Analyst, documenting structured investigations of simulated network intrusions, endpoint
-
-compromises, and active web attacks.
+Welcome to my professional security operations and threat-hunting portfolio. This repository serves as a showcase of my hands-on experience as a SOC Analyst, documenting structured investigations of simulated network intrusions, endpoint compromises, and active web attacks.
 
 ## About Me
 
