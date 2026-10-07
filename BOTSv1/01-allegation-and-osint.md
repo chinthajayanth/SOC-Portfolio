@@ -50,6 +50,6 @@ cross-referenced against any public information about this group.
 
 ## Next Step
 
-Proceed to reconnaissance analysis (`02-reconnaissance.md`) against
+Proceed to reconnaissance analysis [02-reconnaissance.md](02-reconnaissance.md) against
 www.imreallynotbatman.com web traffic to identify candidate attacker source IPs
 based on behavior rather than claimed identity.
