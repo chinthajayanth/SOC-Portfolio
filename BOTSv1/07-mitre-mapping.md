@@ -33,6 +33,6 @@ T1078 T1105
 - **Moderate confidence** (strong circumstantial evidence): T1105, T1505.003, T1071.001 — the file upload action and backdoor beaconing pattern are well-supported, but the exact file written by the `com_extplorer` upload was not directly captured in these logs; `agent.php`'s appearance and behavior afterward constitute the supporting evidence.
 
 ## Next Step
-Proceed to `08-iocs-and-recommendations.md` to finalize the IOC list (already
-drafted in `05-attacker-infrastructure.md`) alongside concrete remediation
+Proceed to [08-iocs-and-recommendations.md](08-iocs-and-recommendations.md) to finalize the IOC list (already
+drafted in [05-attacker-infrastructure.md](05-attacker-infrastructure.md) alongside concrete remediation
 recommendations for each phase above.
