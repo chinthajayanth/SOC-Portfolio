@@ -100,8 +100,6 @@ in the next section.
 index=botsv1 sourcetype="stream:http" c_ip=40.80.148.42
 | top limit=10 http_user_agent
 ```
-*(replace `http_user_agent` with whichever field name your `fieldsummary` showed — 
-confirm this before finalizing)*
 
 **Result:**
 
