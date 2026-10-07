@@ -89,9 +89,7 @@ once, except `batman`, which appears twice — once as part of the automated
 brute-force sequence, and once more as the actual successful authenticated
 login shortly after. This is a more reliable method than timestamp proximity,
 since it does not depend on assuming no other request could fall between the
-guess and the success. **Correction note:** the initial timing-based guess
-(`skippy`) is superseded by this frequency-based finding (`batman`) as the
-confirmed correct password.
+guess and the success.
 
 ---
 
