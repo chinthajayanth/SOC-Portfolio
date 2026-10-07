@@ -24,8 +24,7 @@ index=botsv1 sourcetype="stream:http" c_ip=23.22.63.114 uri_path="/joomla/admini
 | 200 | 6,287 | 411 |
 | **200** | **30,661** | **1** |
 
-**Screenshot:**
-[](screenshots/04-01-status-bytes-breakdown.png)
+[Screenshot](screenshots/04-01-status-bytes-breakdown.png)
 
 **Explanation:** 823 failed-login-sized responses, and a single outlier nearly
 5x larger — consistent with a successful authentication returning the full
