@@ -23,8 +23,8 @@ index=botsv1 sourcetype="stream:http" c_ip=23.22.63.114 uri_path="/joomla/admini
 | 200 | 6,093 | 412 |
 | 200 | 6,287 | 411 |
 | **200** | **30,661** | **1** |
-
-[Screenshot](screenshots/04-01-status-bytes-breakdown.png)
+**Screenshot**
+![](screenshots/04-01-status-bytes-breakdown.png)
 
 **Explanation:** 823 failed-login-sized responses, and a single outlier nearly
 5x larger — consistent with a successful authentication returning the full
@@ -49,7 +49,7 @@ index=botsv1 sourcetype="stream:http" c_ip=23.22.63.114 uri_path="/joomla/admini
 Timestamp: `2016-08-10 21:46:40.781`
 
 **Screenshot:**
-[](screenshots/04-02-authenticated-dashboard-html.png)
+![](screenshots/04-02-authenticated-dashboard-html.png)
 
 **Explanation:** This is direct, primary evidence — the raw rendered HTML of
 the authenticated Joomla "Control Panel" page — proving `23.22.63.114` achieved
@@ -82,7 +82,7 @@ index=botsv1 sourcetype=stream:http dest_ip="192.168.250.70" http_method=POST ur
 | ... (all others) | 1 |
 
 **Screenshot:**
-[](screenshots/04-03-password-frequency.png)
+![](screenshots/04-03-password-frequency.png)
 
 **Explanation:** Every password in the brute-force list was attempted exactly
 once, except `batman`, which appears twice — once as part of the automated
@@ -112,7 +112,7 @@ index=botsv1 sourcetype="stream:http" src_ip="192.168.250.70" http_method=GET
 | 2016-08-10 22:13:46.915 | /poisonivy-is-coming-for-you-batman.jpeg | 23.22.63.114 | prankglassinebracket.jumpingcrab.com:1337 |
 
 **Screenshot:**
-[](screenshots/04-04-defacement-file-retrieval.png)
+![](screenshots/04-04-defacement-file-retrieval.png)
 
 **Explanation:** This is the conclusive finding. The compromised web server
 itself (`192.168.250.70`) initiated outbound GET requests retrieving a file
@@ -141,7 +141,7 @@ index=botsv1 sourcetype="fgt_utm" dstip=23.22.63.114 OR srcip=23.22.63.114
 `filename`/`file_hash` entries were present for this transfer.
 
 **Screenshot:**
-[](screenshots/04-05-utm-webfilter-only.png)
+![](screenshots/04-05-utm-webfilter-only.png)
 
 **Explanation:** This is a documented limitation, not a gap in the
 investigation: the UTM profile's antivirus engine did not inspect this
