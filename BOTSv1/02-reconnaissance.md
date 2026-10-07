@@ -22,7 +22,7 @@ index=botsv1 imreallynotbatman.com sourcetype="stream:http"
 | 40.80.148.42 | 20,964 |
 | 23.22.63.114 | 1,236 |
 
-**Screenshot:** `screenshots/02-01-top-source-ips.png`
+![](screenshots/02-01-top-source-ips.png)
 
 **Explanation:** One IP, `40.80.148.42`, accounts for 94.4% of all HTTP traffic to
 the site. A small corporate blog would not normally see this level of traffic
@@ -46,7 +46,7 @@ index=botsv1 sourcetype="stream:http" c_ip=40.80.148.42
 |---|
 | 1,881 |
 
-**Screenshot:** `screenshots/02-02-distinct-uri-count.png`
+![](screenshots/02-02-distinct-uri-count.png)
 
 **Explanation:** 1,881 distinct URL paths requested by a single source is not
 consistent with normal human browsing of a small blog. This volume of path
@@ -81,7 +81,7 @@ index=botsv1 sourcetype="stream:http" c_ip=40.80.148.42
 | 417 | 1 |
 | 501 | 1 |
 
-**Screenshot:** `screenshots/02-03-status-code-breakdown.png`
+![](screenshots/02-03-status-code-breakdown.png)
 
 **Explanation:** 93.5% of requested paths returned HTTP 404 (not found) —
 confirming most guessed paths do not exist on the server. This 404-heavy
@@ -109,7 +109,7 @@ confirm this before finalizing)*
 |---|---|---|
 | Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.21 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.21 | 20,964 | 100% |
 
-**Screenshot:** `screenshots/02-04-user-agent.png`
+![](screenshots/02-04-user-agent.png)
 
 **Explanation:** All requests from this IP used a single, consistent User-Agent
 string claiming to be Chrome version 41.0.2228.0. This version number does not
@@ -131,6 +131,6 @@ common technique scanning tools use to blend in with legitimate browser traffic.
 | Assessment | **Automated reconnaissance / vulnerability scanning confirmed** |
 
 ## Next Step
-Proceed to `03-exploitation.md` — inspect the 86 URIs that returned HTTP 200 to
+Proceed to [03-exploitation.md](03-exploitation.md)— inspect the 86 URIs that returned HTTP 200 to
 identify what the scanner found and whether any request represents a successful
 exploitation attempt.
