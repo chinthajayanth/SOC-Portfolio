@@ -11,15 +11,15 @@ evidence source it came from.
 
 | IOC | Role | First Seen | Evidence Source |
 |---|---|---|---|
-| `40.80.148.42` | Reconnaissance / vulnerability scanning (Acunetix WVS) | 2016-08-10 21:36:45 | `02-reconnaissance.md`, `03-exploitation.md` |
-| `23.22.63.114` | Brute-force authentication, defacement file host | 2016-08-10 21:45:08 | `03-exploitation.md`, `04-defacement-confirmation.md` |
+| `40.80.148.42` | Reconnaissance / vulnerability scanning (Acunetix WVS) | 2016-08-10 21:36:45 | [02-reconnaissance.md](02-reconnaissance.md), [03-exploitation.md](03-exploitation.md) |
+| `23.22.63.114` | Brute-force authentication, defacement file host | 2016-08-10 21:45:08 | [03-exploitation.md](03-exploitation.md), [04-defacement-confirmation.md](04-defacement-confirmation.md) |
 
 ## Domains
 
 | IOC | Role | Notes |
 |---|---|---|
 | `prankglassinebracket.jumpingcrab.com` | Hosted the defacement image, port 1337 | Resolves to `23.22.63.114`; `jumpingcrab.com` is a free dynamic-DNS provider — disposable attacker infrastructure |
-| `www.po1s0n1vy.com` | Actor-claimed domain (from Pastebin signature) | Never observed in internal telemetry (`01-allegation-and-osint.md`) — could not be used as a search pivot |
+| `www.po1s0n1vy.com` | Actor-claimed domain (from Pastebin signature) | Never observed in internal telemetry ([01-allegation-and-osint.md](01-allegation-and-osint.md) — could not be used as a search pivot |
 
 ## Files
 
@@ -31,7 +31,7 @@ evidence source it came from.
 
 | IOC | Role | Notes |
 |---|---|---|
-| `admin` / `batman` | Compromised Joomla CMS account | Confirmed via frequency analysis (`04-defacement-confirmation.md`, Step 3), corrected from an initial timing-based guess |
+| `admin` / `batman` | Compromised Joomla CMS account | Confirmed via frequency analysis ([04-defacement-confirmation.md](04-defacement-confirmation.md), Step 3), corrected from an initial timing-based guess |
 
 ## Tooling
 
@@ -49,5 +49,5 @@ evidence source it came from.
 ---
 
 ## Next Step
-Proceed to `06-timeline.md` to assemble these indicators into a single
+Proceed to [06-timeline.md](06-timeline.md) to assemble these indicators into a single
 chronological narrative of the full attack.
