@@ -167,6 +167,6 @@ defacement delivery itself, not just the scanning phase.
 | **Verdict** | **Confirmed: www.imreallynotbatman.com was compromised and defaced** |
 
 ## Next Step
-Proceed to `05-attacker-infrastructure.md` to consolidate all IOCs (IPs, domain,
-tooling) and `06-timeline.md` to assemble the full chronological attack chain
+Proceed to [05-attacker-infrastructure.md](05-attacker-infrastructure.md) to consolidate all IOCs (IPs, domain,
+tooling) and [06-timeline.md](06-timeline.md) to assemble the full chronological attack chain
 from `01` through `04`.
