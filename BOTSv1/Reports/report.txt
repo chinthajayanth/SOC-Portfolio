@@ -1,0 +1,758 @@
+The Goal (write this at the top of your repo)
+
+Determine whether www.imreallynotbatman.com was compromised and defaced, reconstruct exactly how it happened end-to-end using internal log evidence, identify attacker infrastructure, and assess impact.
+
+Documentation structure — create this now
+/scenario-01-website-defacement
+├── README.md
+├── 01-allegation-and-osint.md
+├── 02-reconnaissance.md
+├── 03-exploitation.md
+├── 04-defacement-confirmation.md
+├── 05-attacker-infrastructure.md
+├── 06-timeline.md
+├── 07-mitre-mapping.md
+└── 08-iocs-and-recommendations.md
+File 1 — 01-allegation-and-osint.md (you can write this now, it's done)
+
+Document these two facts exactly as findings, with evidence:
+
+Allegation: GCPD identified a pastebin post (dated Sept 8, 2016) claiming defacement of www.imreallynotbatman.com by a group signing as "po1s0n1vy."
+OSINT finding 1: Searching the raw index for the string po1s0n1vy returned 0 events — the actor's self-claimed handle does not appear anywhere in internal telemetry. Conclusion: attacker infrastructure must be found through behavioral analysis, not by searching for their name.
+
+index=botsv1 "po1s0n1vy"
+ 0 events (01/08/2016 00:00:00.000 to 07/10/2026 03:11:43.000)
+
+That's your whole Step 1 — allegation documented, one avenue ruled out with evidence. This is good practice: real reports document negative findings too.
+
+File 2 — 02-reconnaissance.md (in progress)
+Finding: In stream:http traffic to the site, one source IP — 40.80.148.42 — accounts for 20,964 requests, 94.4% of all HTTP traffic. This is anomalously concentrated for a small corporate blog and is the primary suspect for reconnaissance/attack activity.
+Status: Hypothesis not yet tested. Needs: distinct URI count, status code distribution, user agent.
+Your task right now
+
+Run the three checks for 02-reconnaissance.md, scoped to that IP. Think through each before running:
+
+How many distinct URL paths did 40.80.148.42 request? (scanning = high distinct count)
+What's the breakdown of status codes it received?
+What user agent(s) did it use?
+
+index=botsv1 imreallynotbatman.com sourcetype="stream:http"
+| stats count by c_ip
+| sort -count
+
+c_ip	count
+40.80.148.42	20964
+23.22.63.114	1236
+
+index=botsv1 sourcetype="stream:http"  c_ip=40.80.148.42 
+| stats dc(uri_path)
+
+dc(uri_path)
+1881
+
+index=botsv1 sourcetype="stream:http"  c_ip=40.80.148.42
+| stats dc(uri_path) by status
+| sort -dc(uri_path)
+
+status	dc(uri_path)
+404	1759
+200	86
+403	36
+301	16
+304	15
+303	10
+400	8
+500	5
+405	1
+417	1
+501	1
+
+
+Top 10 Values	Count	%	 
+Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.21 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.21
+
+
+
+index=botsv1 sourcetype="stream:http" c_ip=40.80.148.42 status=200
+| stats count by uri_path
+| sort -count
+
+
+/joomla/index.php/component/search/	4164
+/joomla/index.php	693
+/	515
+/joomla/index.php/component/mailto/	478
+/windows/win.ini	87
+/joomla/administrator/index.php	31
+/boot.ini	29
+/windows/win.ini%00.jpg	29
+/joomla/media/jui/js/jquery-migrate.min.js	17
+/joomla/media/jui/js/jquery-noconflict.js	17
+/joomla/media/jui/js/bootstrap.min.js	16
+/joomla/media/system/js/html5fallback.js	13
+/joomla/templates/protostar/js/template.js	13
+/joomla/media/jui/js/jquery.min.js	11
+/joomla/templates/protostar/css/template.css	9
+/joomla/media/jui/css/chosen-sprite.png	8
+/joomla/media/system/js/caption.js	7
+/joomla/media/system/images/arrow.png	6
+/joomla/media/jui/fonts/IcoMoon.svg	5
+/joomla/media/jui/js/chosen.jquery.min.js
+
+
+index=botsv1 sourcetype="stream:http" c_ip=40.80.148.42 AND  status=200 AND uri_path="/joomla/index.php/component/search/"
+
+Top 10 Values	Count	%	 
+Itemid=115&searchphrase=all&searchword=the	10	0.511%	
+Itemid=101&searchphrase=all&searchword=	9	0.46%	
+catid=9&format=opensearch&id=4&Itemid=101	9	0.46%	
+format=opensearch&id=9&Itemid=101&layout=blog	9	0.46%	
+Itemid=101&searchphrase=all&searchword=the	7	0.358%	
+catid=9&format=opensearch&id=5&Itemid=101	7	0.358%	
+catid=9&format=opensearch&id=6&Itemid=101	7	0.358%	
+Itemid=115&searchphrase=all&searchword=	6	0.306%	
+Itemid=102&searchphrase=all&searchword=the	5	0.255%	
+format=opensearch&Itemid=108
+
+
+index=botsv1 sourcetype="stream:http" c_ip=40.80.148.42 AND  status=200 AND uri_path="/joomla/administrator/index.php*"
+Values	Count	%	 
+option=com_ajax&group=system&plugin=sendStats&format=raw	6	40%	
+option=com_installer	3	20%	
+option=com_installer&view=install	2	13.333%	
+option=com_extplorer&action=include_javascript&file=functions.js	1	6.667%	
+option=com_extplorer&tmpl=component	1	6.667%	
+option=com_installer&view=update&task=update.ajax&9a1f5ea945d8863b612f9488485969e4=1&eid=0&skip=700	1	6.667%	
+option=com_installer&view=update&task=update.ajax&9a1f5ea945d8863b612f9488485969e4=1&eid=700&cache_timeout=3600
+
+ for these two no uri_query feilds
+/windows/win.ini
+/boot.ini
+
+
+index=botsv1 sourcetype="stream:http" c_ip=40.80.148.42 uri_path="/joomla/administrator/index.php" 
+| stats count by uri_query
+| sort -count
+
+uri_query	count
+option=com_ajax&group=system&plugin=sendStats&format=raw	6
+option=com_installer	3
+option=com_installer&view=install	3
+option=com_extplorer&action=include_javascript&file=functions.js	1
+option=com_extplorer&tmpl=component	1
+option=com_installer&view=update&task=update.ajax&9a1f5ea945d8863b612f9488485969e4=1&eid=0&skip=700	1
+option=com_installer&view=update&task=update.ajax&9a1f5ea945d8863b612f9488485969e4=1&eid=700&cache_timeout=3600
+
+index=botsv1 sourcetype="stream:http" c_ip=40.80.148.42 uri_path="/joomla/administrator/index.php"
+| table _time, uri_query, status
+| sort _time
+
+_time	uri_query	status
+2016-08-10 21:48:05.858	 	303
+2016-08-10 21:48:07.844	 	200
+2016-08-10 21:48:09.254	option=com_ajax&group=system&plugin=sendStats&format=raw	200
+2016-08-10 21:48:09.964	option=com_installer&view=update&task=update.ajax&9a1f5ea945d8863b612f9488485969e4=1&eid=0&skip=700	200
+2016-08-10 21:48:11.694	option=com_installer&view=update&task=update.ajax&9a1f5ea945d8863b612f9488485969e4=1&eid=700&cache_timeout=3600	200
+2016-08-10 21:49:28.827	option=com_installer	200
+2016-08-10 21:49:30.249	option=com_ajax&group=system&plugin=sendStats&format=raw	200
+2016-08-10 21:50:05.026	option=com_installer	200
+2016-08-10 21:50:07.925	option=com_ajax&group=system&plugin=sendStats&format=raw	200
+2016-08-10 21:50:31.324	option=com_installer&view=install	303
+2016-08-10 21:50:32.510	option=com_installer&view=install	200
+2016-08-10 21:50:34.159	option=com_ajax&group=system&plugin=sendStats&format=raw	200
+2016-08-10 21:50:43.639	option=com_installer	200
+2016-08-10 21:50:45.112	option=com_ajax&group=system&plugin=sendStats&format=raw	200
+2016-08-10 21:51:12.818	option=com_installer&view=install	200
+2016-08-10 21:51:15.001	option=com_ajax&group=system&plugin=sendStats&format=raw	200
+2016-08-10 21:51:32.383	option=com_extplorer&tmpl=component	200
+2016-08-10 21:51:33.820	option=com_extplorer&action=include_javascript&file=functions.js	200
+2016-08-10 21:51:36.472	 	200
+2016-08-10 21:51:36.474	 
+
+
+index=botsv1 sourcetype="stream:http" c_ip=40.80.148.42 uri_path="/windows/win.ini"
+| table _time, uri_path, uri_query, url
+| head 5
+
+_time	uri_path	uri_query	url
+2016-08-10 21:51:22.473	/windows/win.ini	 	http://imreallynotbatman.com/windows/win.ini
+2016-08-10 21:51:21.128	/windows/win.ini	 	http://imreallynotbatman.com/windows/win.ini
+2016-08-10 21:51:12.244	/windows/win.ini	 	http://imreallynotbatman.com/windows/win.ini
+2016-08-10 21:51:07.534	/windows/win.ini	 	http://imreallynotbatman.com/windows/win.ini
+2016-08-10 21:51:06.192	/windows/win.ini	 	http://imreallynotbatman.com/windows/win.ini
+
+index=botsv1 sourcetype="stream:http" c_ip=40.80.148.42 uri_path="/windows/win.ini" status=200
+
+
+src_headers: GET /joomla/index.php/component/mailto/?link=57e1ada6273ce1407e3ff09366bf80b5f2e47ac0&template=protostar&tmpl=../.../.././../.../.././../.../.././../.../.././../.../.././../.../.././windows/win.ini HTTP/1.1
+Referer: http://imreallynotbatman.com:80/
+Cookie: ae72c62a4936b238523950a4f26f67d0=v7ikb3m59romokqmbiet3vphv3
+Host: imreallynotbatman.com
+Connection: Keep-alive
+Accept-Encoding: gzip,deflate
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.21 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.21
+Acunetix-Product: WVS/10.0 (Acunetix Web Vulnerability Scanner - Free Edition)
+Acunetix-Scanning-agreement: Third Party Scanning PROHIBITED
+Acunetix-User-agreement: http://www.acunetix.com/wvs/disc.htm
+Accept: */*
+
+
+index=botsv1 sourcetype="stream:http" c_ip=40.80.148.42 uri_path="*/boot.ini*" status=200
+
+src_headers: GET /joomla/index.php/component/mailto/?link=57e1ada6273ce1407e3ff09366bf80b5f2e47ac0&template=protostar&tmpl=../../../../../../../../../../boot.ini HTTP/1.1
+Referer: http://imreallynotbatman.com:80/
+Cookie: ae72c62a4936b238523950a4f26f67d0=v7ikb3m59romokqmbiet3vphv3
+Host: imreallynotbatman.com
+Connection: Keep-alive
+Accept-Encoding: gzip,deflate
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.21 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.21
+Acunetix-Product: WVS/10.0 (Acunetix Web Vulnerability Scanner - Free Edition)
+Acunetix-Scanning-agreement: Third Party Scanning PROHIBITED
+Acunetix-User-agreement: http://www.acunetix.com/wvs/disc.htm
+Accept: */*
+
+
+
+index=botsv1 sourcetype="stream:http" "imreallynotbatman.com" 
+| table _time, c_ip, uri_path, status
+| sort _time
+
+
+_time	c_ip	uri_path	status
+2016-08-10 21:36:45.624	40.80.148.42	/	200
+2016-08-10 21:36:45.631	40.80.148.42	/acunetix-wvs-test-for-some-inexistent-file	404
+2016-08-10 21:36:48.122	40.80.148.42	/	200
+2016-08-10 21:36:48.122	40.80.148.42	/	200
+2016-08-10 21:36:48.122	40.80.148.42	/	200
+2016-08-10 21:36:48.122	40.80.148.42	/	200
+2016-08-10 21:36:48.122	40.80.148.42	/	200
+2016-08-10 21:36:48.302	40.80.148.42	/OD6xDhbF	404
+2016-08-10 21:36:48.309	40.80.148.42	/PdgdyH6M	404
+2016-08-10 21:36:49.552	40.80.148.42	/FJl9pMoX	404
+2016-08-10 21:36:53.296	40.80.148.42	/cgi-bin/le_check_v3.exe	404
+2016-08-10 21:36:55.307	40.80.148.42	/	200
+2016-08-10 21:36:55.441	40.80.148.42	/server-info	404
+2016-08-10 21:36:55.545	40.80.148.42	www.acunetix.wvs	200
+2016-08-10 21:36:55.578	40.80.148.42	/console/j_security_check	404
+2016-08-10 21:36:55.578	40.80.148.42		400
+2016-08-10 21:36:55.580	40.80.148.42	/index	404
+2016-08-10 21:36:55.580	40.80.148.42	/roller-ui/login.rol	404
+2016-08-10 21:36:55.581	40.80.148.42	/favicon.ico	404
+2016-08-10 21:36:55.582	40.80.148.42	/axis2/services/listServices	404
+......and many more
+
+index=botsv1 sourcetype="stream:http" "imreallynotbatman.com" status=200
+| table _time, c_ip, uri_path, status
+| sort _time
+
+
+_time	c_ip	uri_path	status
+2016-08-10 21:36:45.624	40.80.148.42	/	200
+2016-08-10 21:36:48.122	40.80.148.42	/	200
+2016-08-10 21:36:48.122	40.80.148.42	/	200
+2016-08-10 21:36:48.122	40.80.148.42	/	200
+2016-08-10 21:36:48.122	40.80.148.42	/	200
+2016-08-10 21:36:48.122	40.80.148.42	/	200
+2016-08-10 21:36:55.307	40.80.148.42	/	200
+2016-08-10 21:36:55.545	40.80.148.42	www.acunetix.wvs	200
+2016-08-10 21:36:56.412	40.80.148.42	/	200
+2016-08-10 21:36:57.100	40.80.148.42	/	200
+2016-08-10 21:36:57.100	40.80.148.42	/	200
+2016-08-10 21:36:58.743	40.80.148.42	/	200
+2016-08-10 21:37:01.210	40.80.148.42	/	200
+2016-08-10 21:37:15.068	40.80.148.42	/vulnweb.com/..	200
+2016-08-10 21:37:15.168	40.80.148.42	/vulnweb.com/..	200
+2016-08-10 21:37:15.266	40.80.148.42	/	200
+2016-08-10 21:37:24.505	40.80.148.42	/	200
+2016-08-10 21:37:26.037	40.80.148.42	/index.php	200
+2016-08-10 21:37:26.580	40.80.148.42	/index.php/customer/account/create/	200
+2016-08-10 21:37:27.305	40.80.148.42	/phpmyadmin2/main.php 200
+......and many more
+
+
+index=botsv1 sourcetype="stream:http" "imreallynotbatman.com" status=200 earliest=08/10/2016:21:51:36 latest=08/11/2016:06:00:00
+| table _time, c_ip, uri_path, status
+| sort _time
+
+_time	c_ip	uri_path	status
+2016-08-10 21:51:36.004	40.80.148.42	/joomla/index.php/component/mailto/	200
+2016-08-10 21:51:36.047	40.80.148.42	/joomla/administrator/components/com_extplorer/images/extension/document.png	200
+2016-08-10 21:51:36.047	40.80.148.42	/joomla/administrator/components/com_extplorer/images/_down.png	200
+2016-08-10 21:51:36.199	40.80.148.42	/joomla/administrator/components/com_extplorer/images/_up.png	200
+2016-08-10 21:51:36.224	40.80.148.42	/joomla/administrator/components/com_extplorer/images/_extract.gif	200
+2016-08-10 21:51:36.363	40.80.148.42	/windows/win.ini	200
+2016-08-10 21:51:36.371	40.80.148.42	/joomla/administrator/components/com_extplorer/images/_help.png	200
+2016-08-10 21:51:36.472	40.80.148.42	/joomla/administrator/index.php	200
+2016-08-10 21:51:36.474	40.80.148.42	/joomla/administrator/index.php	200
+2016-08-10 21:51:36.526	40.80.148.42	/joomla/administrator/index.php	200
+2016-08-10 21:51:36.751	40.80.148.42	/joomla/index.php/component/search/	200
+2016-08-10 21:51:36.753	40.80.148.42	/joomla/index.php/component/mailto/	200
+2016-08-10 21:51:36.753	40.80.148.42	/joomla/administrator/components/com_extplorer/images/extension/folder.png	200
+2016-08-10 21:51:36.754	40.80.148.42	/joomla/administrator/components/com_extplorer/images/extension/png.png	200
+2016-08-10 21:51:36.835	40.80.148.42	/joomla/administrator/components/com_extplorer/images/extension/htm.png	200
+2016-08-10 21:51:37.221	40.80.148.42	/joomla/index.php/component/mailto/	200
+2016-08-10 21:51:37.940	40.80.148.42	/joomla/index.php/component/mailto/	200
+2016-08-10 21:51:38.020	40.80.148.42	/joomla/index.php/component/mailto/	200
+2016-08-10 21:51:38.148	40.80.148.42	/joomla/index.php/component/search/	200
+2016-08-10 21:51:38.471	40.80.148.42	/joomla/index.php/component/mailto/
+
+
+index=botsv1 sourcetype="stream:http" "imreallynotbatman.com" earliest=08/10/2016:21:51:36 latest=08/11/2016:06:00:00
+| table _time, c_ip, uri_path, status
+| sort _time
+
+_time	c_ip	uri_path	status
+2016-08-10 21:51:36.004	40.80.148.42	/joomla/index.php/component/mailto/	200
+2016-08-10 21:51:36.007	40.80.148.42	/joomla/index.php/component/search/	303
+2016-08-10 21:51:36.037	40.80.148.42	 	 
+2016-08-10 21:51:36.047	40.80.148.42	/joomla/administrator/components/com_extplorer/images/extension/document.png	200
+2016-08-10 21:51:36.047	40.80.148.42	/joomla/administrator/components/com_extplorer/images/_down.png	200
+2016-08-10 21:51:36.199	40.80.148.42	/joomla/administrator/components/com_extplorer/images/_up.png	200
+2016-08-10 21:51:36.209	40.80.148.42	 	 
+2016-08-10 21:51:36.224	40.80.148.42	/joomla/administrator/components/com_extplorer/images/_extract.gif	200
+2016-08-10 21:51:36.339	40.80.148.42	/joomla/index.php/component/search/	303
+2016-08-10 21:51:36.361	40.80.148.42	/joomla/index.php/component/search/	303
+2016-08-10 21:51:36.363	40.80.148.42	/windows/win.ini	200
+2016-08-10 21:51:36.366	40.80.148.42	/joomla/index.php/component/search/	303
+2016-08-10 21:51:36.371	40.80.148.42	/joomla/administrator/components/com_extplorer/images/_help.png	200
+2016-08-10 21:51:36.472	40.80.148.42	/joomla/administrator/index.php	200
+2016-08-10 21:51:36.474	40.80.148.42	/joomla/administrator/index.php	200
+2016-08-10 21:51:36.526	40.80.148.42	/joomla/administrator/index.php	200
+2016-08-10 21:51:36.535	40.80.148.42	/windows/win.ini.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\	404
+2016-08-10 21:51:36.751	40.80.148.42	/joomla/index.php/component/search/	200
+2016-08-10 21:51:36.753	40.80.148.42	/joomla/index.php/component/mailto/	200
+2016-08-10 21:51:36.753	40.80.148.42	/joomla/administrator/components/com_extplorer/images/extension/folder.png	200
+
+
+
+index=botsv1 sourcetype="stream:http" "imreallynotbatman.com" earliest=08/10/2016:21:51:38 latest=08/15/2016:00:00:00
+| stats count by c_ip
+| sort -count
+
+c_ip	count
+40.80.148.42	14208
+
+index=botsv1 sourcetype="stream:http" uri_path="/joomla/administrator/index.php" http_method=POST status=200
+| table _time, c_ip, uri_query, status, form_data
+
+_time	c_ip	uri_query	status	form_data
+2016-08-10 21:52:48.889	40.80.148.42	 	200	start=0&limit=150&dir=/joomla&option=com_extplorer&action=getdircontents&sendWhat=both
+2016-08-10 21:52:27.929	40.80.148.42	 	200	option=com_extplorer&dir=&item=/joomla&selitems[]=/joomla&action=upload
+2016-08-10 21:52:23.945	40.80.148.42	 	200	action=chdir_event&dir=/joomla&option=com_extplorer
+2016-08-10 21:52:23.949	40.80.148.42	 	200	start=0&limit=150&dir=/joomla&option=com_extplorer&action=getdircontents&sendWhat=both
+2016-08-10 21:51:36.472	40.80.148.42	 	200	action=chdir_event&dir=&option=com_extplorer
+2016-08-10 21:51:36.526	40.80.148.42	 	200	option=com_extplorer&action=getdircontents&dir=&sendWhat=dirs&node=ext_root
+2016-08-10 21:51:36.474	40.80.148.42	 	200	start=0&limit=150&dir=&option=com_extplorer&action=getdircontents&sendWhat=both
+2016-08-10 22:16:34.609	40.80.148.42	 	200	start=0&limit=150&dir=ext_root&option=com_extplorer&action=getdircontents&sendWhat=both&order=type&direction=ASC
+2016-08-10 22:16:29.052	40.80.148.42	 	200	action=chdir_event&dir=ext_root&option=com_extplorer
+2016-08-10 22:16:23.357	40.80.148.42	 	200	start=0&limit=150&dir=/joomla&option=com_extplorer&action=getdircontents&sendWhat=both
+2016-08-10 22:16:14.098	40.80.148.42	 	200	start=0&limit=150&dir=/joomla&option=com_extplorer&action=getdircontents&sendWhat=both
+2016-08-10 22:21:11.000	40.80.148.42	 	200	start=0&limit=150&dir=&option=com_extplorer&action=getdircontents&sendWhat=both&order=modified&direction=ASC
+2016-08-10 22:21:10.963	40.80.148.42	 	200	action=chdir_event&dir=&option=com_extplorer
+2016-08-10 22:16:28.857	40.80.148.42	 	200	start=0&limit=150&dir=ext_root&option=com_extplorer&action=getdircontents&sendWhat=both
+2016-08-10 22:16:38.155	40.80.148.42	 	200	start=0&limit=150&dir=ext_root&option=com_extplorer&action=getdircontents&sendWhat=both&order=modified&direction=ASC
+
+index=botsv1 sourcetype="stream:http" uri_path="/joomla/administrator/index.php"
+| table _time, c_ip, status, bytes_out
+
+index=botsv1 sourcetype="stream:http" uri_path="/joomla/administrator/index.php"
+| dedup c_ip, bytes_out
+| table _time, c_ip, status, bytes_out
+
+_time	c_ip	status	bytes_out
+2016-08-10 22:21:11.000	40.80.148.42	200	5983
+2016-08-10 21:52:48.889	40.80.148.42	200	10079
+2016-08-10 21:52:27.929	40.80.148.42	200	7233
+2016-08-10 21:52:23.949	40.80.148.42	200	9313
+2016-08-10 21:52:23.945	40.80.148.42	200	1219
+2016-08-10 21:51:36.526	40.80.148.42	200	416
+2016-08-10 21:51:36.474	40.80.148.42	200	1339
+2016-08-10 21:51:36.472	40.80.148.42	200	452
+2016-08-10 21:51:33.820	40.80.148.42	200	18451
+2016-08-10 21:51:32.383	40.80.148.42	200	42893
+2016-08-10 21:51:15.001	40.80.148.42	200	1791
+2016-08-10 21:51:12.818	40.80.148.42	200	27787
+2016-08-10 21:50:43.639	40.80.148.42	200	27697
+2016-08-10 21:50:32.510	40.80.148.42	200	27987
+2016-08-10 21:50:31.324	40.80.148.42	303	502
+2016-08-10 21:48:11.694	40.80.148.42	200	929
+2016-08-10 21:48:09.964	40.80.148.42	200	155
+2016-08-10 21:48:07.844	40.80.148.42	200	31205
+2016-08-10 21:48:05.858	40.80.148.42	303	430
+2016-08-10 21:46:53.591	23.22.63.114	200	6287
+_time	c_ip	status	bytes_out
+2016-08-10 21:46:51.394	23.22.63.114	303	449
+2016-08-10 21:46:47.475	23.22.63.114	200	6093
+2016-08-10 21:46:40.781	23.22.63.114	200	30661
+2016-08-10 21:45:21.325	23.22.63.114	 	450
+
+
+index=botsv1 sourcetype="stream:http" c_ip=40.80.148.42 earliest=08/10/2016:21:51:32 latest=08/10/2016:22:22:00
+| stats values(http_user_agent) by c_ip
+
+40.80.148.42	
+Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.21 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.21
+Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko
+
+
+index=botsv1 sourcetype="stream:http" c_ip=23.22.63.114
+
+| table _time, uri_path, uri_query, status, http_user_agent
+| sort _time
+
+_time	uri_path	uri_query	status	http_user_agent
+2016-08-10 21:45:09.983	/joomla/administrator/index.php	 	200	Python-urllib/2.7
+2016-08-10 21:45:10.023	/joomla/administrator/index.php	 	200	Python-urllib/2.7
+2016-08-10 21:45:10.024	/joomla/administrator/index.php	 	200	Python-urllib/2.7
+2016-08-10 21:45:10.058	/joomla/administrator/index.php	 	200	Python-urllib/2.7
+2016-08-10 21:45:10.126	/joomla/administrator/index.php	 	200	Python-urllib/2.7
+2016-08-10 21:45:10.219	/joomla/administrator/index.php	 	200	Python-urllib/2.7
+2016-08-10 21:45:10.822	/joomla/administrator/index.php	 	200	Python-urllib/2.7
+2016-08-10 21:45:10.927	/joomla/administrator/index.php	 	200	Python-urllib/2.7
+2016-08-10 21:45:10.962	/joomla/administrator/index.php	 	200	Python-urllib/2.7
+2016-08-10 21:45:11.061	/joomla/administrator/index.php	 	200	Python-urllib/2.7
+2016-08-10 21:45:11.109	/joomla/administrator/index.php	 	200	Python-urllib/2.7
+2016-08-10 21:45:11.223	/joomla/administrator/index.php	 	200	Python-urllib/2.7
+2016-08-10 21:45:11.290	/joomla/administrator/index.php	 	200	Python-urllib/2.7
+........many more 
+
+
+index=botsv1 sourcetype="stream:http" c_ip=23.22.63.114 uri_path="/joomla/administrator/index.php"
+| stats count by status, bytes_out
+
+
+status	bytes_out	count
+200	30661	1
+200	6093	412
+200	6287	411
+303	449	411
+
+index=botsv1 sourcetype="stream:http" uri_path="/joomla/agent.php"
+| table _time, c_ip, http_method, form_data, http_referrer, status
+| sort _time
+
+
+
+
+{ [-]
+   accept: text/html,text/plain;0.9,application/xml;0.7,*/*
+   accept_language: it-CH,pa;q=0.5,ps;q=0.7,pa;q=0.8
+   ack_packets_in: 2
+   ack_packets_out: 4
+   bytes: 866
+   bytes_in: 523
+   bytes_out: 343
+   c_ip: 23.22.63.114_time	c_ip	http_method	form_data	http_referrer	status
+2016-08-10 21:55:22.673	23.22.63.114	GET	 	http://www.google.ge/url?sa=t&rct=j&source=web&cd=999&ved=422S6hzfP&ei=es4FIEBQgF69AxYiTkOxs6&usg=f95vb7hQYhuEt0MHm69toQuv45ifXrIe1K	200
+2016-08-10 21:55:22.814	23.22.63.114	GET	 	http://www.google.ge/url?sa=t&rct=j&source=web&cd=999&ved=ca3S6hz_3&ei=GtG7BjQ4678Kh8TxocdbsQ&usg=SxhN-fsXuPCu-K3-fWzmjRIfzB8acfzsNH	200
+2016-08-10 21:55:23.062	23.22.63.114	GET	 	http://71.39.18.126/?QA=gv_fxvAQtVAVE2vjoxWy0k-A358&qH=dJqwBT35hfynloFCUldwbpYBAF	200
+2016-08-10 21:55:23.204	23.22.63.114	GET	 	http://71.39.18.126/joomla/agent.php?hk=71cS6hNv3hqtVIjcc-vu2FWuBhUdHk&iN=F4gLG85xbe3I-XS8_Q-8jDyzOqaqIr	200
+2016-08-10 21:55:23.425	23.22.63.114	GET	 	http://71.39.18.126/joomla/agent.php?dTw=-YHXoVu_ZEYvNqELHNxhP692w17zRf	200
+2016-08-10 21:55:23.562	23.22.63.114	GET	 	http://71.39.18.126/?QA=E2xDCf-p6io6te_AiFuHyDELmznspX&qH=kb0sxPEos6pgPv-Ka6fZNcFhVK0C_p	200
+2016-08-10 21:55:23.710	23.22.63.114	GET	 	http://www.google.im/url?sa=t&rct=j&q=39.18.126&source=web&cd=953&ved=fO0lG9-Lv&url=39.18&ei=oauZOFzhEmW3vUtw0UiWVR&usg=Xzbs5W2CzjvYLxABGXshxZ8awegD6PN4lo&sig2=nw2977SJJhrG4dShsNQ6Nr	200
+2016-08-10 21:55:23.852	23.22.63.114	GET	 	http://translate.googleusercontent.com/translate_c?depth=1&rurl=translate.google.com&sl=auto&tl=en&u=39&usg=d6aS6hz_3GtG7BjQ4678Kh8TxocdbsQSxh	200
+2016-08-10 21:55:23.994	23.22.63.114	GET	 	http://71.39.18.126/joomla/agent.php?dTw=N-fsXuPCu-K3-fWzmjRIfzB8acfzsN	200
+2016-08-10 21:55:24.234	23.22.63.114	GET	 	http://www.google.im/url?sa=t&rct=j&q=39.18.126&source=web&cd=953&ved=DDIZwSKYg&url=39.18&ei=pgvWMzDZIjxA4195sclyRl&usg=A5LFfAy2t5ro8xrpUHc59BKJ0S7eVTGtIc&sig2=41gp34OaPw7cq0BlbmcbGZ	200
+2016-08-10 21:55:25.328	23.22.63.114	GET	 	http://translate.googleusercontent.com/translate_c?depth=1&rurl=translate.google.com&sl=auto&tl=en&u=39&usg=e8eS6hNv3hqtVIjcc-vu2FWuBhUdHkF4gL	200
+2016-08-10 21:55:25.461	23.22.63.114	GET	 	http://www.google.ge/url?sa=t&rct=j&source=web&cd=999&ved=G85xbe3I-&ei=XS8_Q-8jDyzOqaqIr-YHXo&usg=Vu_ZEYvNqELHNxhP692w17zRfE2xDCf-p6	200
+2016-08-10 21:55:25.595	23.22.63.114	GET	 	http://71.39.18.126/?QA=io6te_AiFuHyDELmznspXkb0sxPEos&qH=6pgPv-Ka6fZNcFhVK0C_pfO0lG9-Lv	200
+2016-08-10 21:55:25.814	23.22.63.114	GET	 	http://www.google.im/url?sa=t&rct=j&q=39.18.126&source=web&cd=953&ved=oauZOFzhE&url=39.18&ei=mW3vUtw0UiWVRXzbs5W2Cz&usg=jvYLxABGXshxZ8awegD6PN4lonw8dfRm89&sig2=OOQ6jSK548AV8u9gaA6kQ4	200
+2016-08-10 21:55:25.961	23.22.63.114	GET	 	http://www.google.ge/url?sa=t&rct=j&source=web&cd=999&ved=0b9S6hz_3&ei=GtG7BjQ4678Kh8TxocdbsQ&usg=SxhN-fsXuPCu-K3-fWzmjRIfzB8acfzsNP	200
+2016-08-10 21:55:26.202	23.22.63.114	GET	 	http://71.39.18.126/joomla/agent.php?hk=hLZQSKYgpgPWMzEQEjpA21c&iN=Gpduxn2q4odbWcdmeC1AVOuSjYkVe	200
+2016-08-10 21:55:28.520	23.22.63.114	GET	 	http://71.39.18.126/joomla/agent.php?hk=65bS6hNv3hqtVIjcc-vu2FWuBhUdHk&iN=F4gLG85xbe3I-XS8_Q-8jDyzOqaqIr	200
+2016-08-10 21:55:28.652	23.22.63.114	GET	 	http://71.39.18.126/?QA=-YHXoVu_ZEYvNqELHNxhP692w17zRf&qH=E2xDCf-p6io6te_AiFuHyDELmznspX	200
+2016-08-10 21:55:28.786	23.22.63.114	GET	 	http://www.google.ge/url?sa=t&rct=j&source=web&cd=999&ved=kb0sxPEos&ei=6pgPv-Ka6fZNcFhVK0C_pf&usg=O0lG9-LvoauZOFzhEmW3vUtw0UiWVRXzbs	200
+2016-08-10 21:55:28.919	23.22.63.114	GET	 	http://translate.googleusercontent.com/translate_c?depth=1&rurl=translate.google.com&sl=auto&tl=en&u=39&usg=5W2CzjvYLxABGXshxZ8awegD6PN4lonw39	200
+
+one event  log
+   cached: 0
+   capture_hostname: demo-01
+   client_rtt: 59500
+   client_rtt_packets: 1
+   client_rtt_sum: 59500
+   connection_type: close
+   cookie: PHPSESSID=uj3mu045di39c6g41q85d3b3f5
+   cs_version: [ [+]
+   ]
+   data_center_time: 301594
+   data_packets_in: 1
+   data_packets_out: 1
+   dest_content: <34819d7b>S6g7MTlkN2M=</34819d7b>
+   dest_headers: HTTP/1.1 200 OK
+Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0
+Pragma: no-cache
+Content-Type: text/html
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Server: Microsoft-IIS/8.5
+X-Powered-By: PHP/5.5.38
+Date: Wed, 10 Aug 2016 22:21:34 GMT
+Connection: close
+Content-Length: 33
+
+
+   dest_ip: 192.168.250.70
+   dest_mac: 00:0C:29:C4:02:7E
+   dest_port: 80
+   duplicate_packets_in: 1
+   duplicate_packets_out: 1
+   endtime: 2016-08-10T22:21:34.766864Z
+   expires: Thu, 19 Nov 1981 08:52:00 GMT
+   http_comment: HTTP/1.1 200 OK
+   http_content_length: 33
+   http_content_type: text/html
+   http_method: GET
+   http_referrer: http://www.google.ml/url?sa=t&rct=j&q=39.18&source=web&cd=077&ved=4VPTJlOHX&url=39&ei=315GkrmqofZQiDalczaDE0&usg=zg0vLgdcefYdxMSA41QI4HLcZiS9M5VWav
+   http_user_agent: Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en-us) AppleWebKit/312.1 (KHTML, like Gecko) Safari/312
+   missing_packets_in: 0
+   missing_packets_out: 0
+   network_interface: eth1
+   packets_in: 5
+   packets_out: 5
+   reply_time: 301594
+   request: GET /joomla/agent.php HTTP/1.1
+   request_ack_time: 29751
+   request_time: 0
+   response_ack_time: 61200
+   response_time: 0
+   sc_cache_control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0
+   sc_date: Wed, 10 Aug 2016 22:21:34 GMT
+   sc_pragma: no-cache
+   server: Microsoft-IIS/8.5
+   server_rtt: 29751
+   server_rtt_packets: 1
+   server_rtt_sum: 29751
+   site: 71.39.18.126
+   src_headers: GET /joomla/agent.php HTTP/1.1
+Accept-Encoding: identity
+Accept-Language: it-CH,pa;q=0.5,ps;q=0.7,pa;q=0.8
+Connection: close
+Accept: text/html,text/plain;0.9,application/xml;0.7,*/*
+User-Agent: Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en-us) AppleWebKit/312.1 (KHTML, like Gecko) Safari/312
+Host: 71.39.18.126
+Cookie: PHPSESSID=uj3mu045di39c6g41q85d3b3f5
+Referer: http://www.google.ml/url?sa=t&rct=j&q=39.18&source=web&cd=077&ved=4VPTJlOHX&url=39&ei=315GkrmqofZQiDalczaDE0&usg=zg0vLgdcefYdxMSA41QI4HLcZiS9M5VWav
+
+
+   src_ip: 23.22.63.114
+   src_mac: 08:5B:0E:93:92:AF
+   src_port: 47517
+   status: 200
+   time_taken: 361094
+   timestamp: 2016-08-10T22:21:34.465270Z
+   transport: tcp
+   uri: /joomla/agent.php
+   uri_path: /joomla/agent.php
+}
+
+
+
+
+index=botsv1 sourcetype="stream:http" c_ip=23.22.63.114 http_method=POST uri_path="/joomla/administrator/index.php"
+| table _time, form_data
+| sort _time
+
+_time	form_data
+2016-08-10 21:45:21.226	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=12345678&9d873c2becd118318849d13cf18b60ff=1
+2016-08-10 21:45:21.241	username=admin&863349a657c211fbfeb90ebe9427654c=1&task=login&return=aW5kZXgucGhw&option=com_login&passwd=letmein
+2016-08-10 21:45:21.247	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=qwerty&af4df60674155567dee0566f87045251=1
+2016-08-10 21:45:21.250	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=1234&aaf6297ae5c1e3df78a421bc55548d16=1
+2016-08-10 21:45:21.260	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&76e93e8488d9a46878468d88954a0d54=1&passwd=123456
+2016-08-10 21:45:21.263	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=football&d1181413b1a70460b8d425cec799cdca=1
+2016-08-10 21:45:21.325	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=pussy&5b4cc9395cafcef6dab9cad73ceacde7=1
+2016-08-10 21:45:21.826	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=michael&bd5d773b68cdb015b021218ff36a2c4a=1
+2016-08-10 21:45:22.000	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=master&0a5d789b1af633e3de4b3dc95daa1877=1
+2016-08-10 21:45:22.002	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=superman&cab483edaec06d4e888547d33f57becb=1
+2016-08-10 21:45:22.005	username=admin&c77289d5d71cfee66a59479cb2706f4a=1&task=login&return=aW5kZXgucGhw&option=com_login&passwd=1234567
+2016-08-10 21:45:22.008	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=shadow&5dd67f80e801dcd4f24920dae0fb2fd6=1
+2016-08-10 21:45:22.012	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=dragon&45b663f3374634ca3fd860101177601c=1
+2016-08-10 21:45:22.034	username=admin&ad30d20bb0b8474d4a81199d95be395f=1&task=login&return=aW5kZXgucGhw&option=com_login&passwd=111111
+2016-08-10 21:45:22.063	username=admin&462a0006d3b8398ba84d11967ceecec0=1&task=login&return=aW5kZXgucGhw&option=com_login&passwd=baseball
+2016-08-10 21:45:22.570	username=admin&d9df6e24cc184413a74e1025ad274cd2=1&task=login&return=aW5kZXgucGhw&option=com_login&passwd=mustang
+2016-08-10 21:45:22.710	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=jennifer&ad1c15a0951d0ff17e2f4cfa4f4922f9=1
+
+
+
+index=botsv1 sourcetype="stream:http" c_ip=23.22.63.114 http_method=POST uri_path="/joomla/administrator/index.php" earliest=08/10/2016:21:46:38 latest=08/10/2016:21:46:41
+| table _time, form_data
+
+
+_time	form_data
+2016-08-10 21:46:39.463	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=red123&848ac390061c57e74cf180424d7c0b74=1
+2016-08-10 21:46:39.263	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=testing&7612b26ac7e295b88bb3d108f59c72ba=1
+2016-08-10 21:46:39.255	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=1212&31192dd82af8ec975de96dfaeb93d5ce=1
+2016-08-10 21:46:39.261	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=dolphin&860e69f61411b02b51d0f9b708ac360e=1
+2016-08-10 21:46:39.253	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=apple&288c6b0fa967fe0d28218bc2a64f100a=1
+2016-08-10 21:46:39.250	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=cocacola&ca15e8b909d07e843f939bbbd75905ad=1
+2016-08-10 21:46:39.258	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=alexis&7e5b2fe13c75a372a40d1f21961fed00=1
+2016-08-10 21:46:40.952	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=member&62ab7265d04c069bf167e3f375d092ac=1
+2016-08-10 21:46:40.819	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=jonathan&cf697adb17dbd65ea0fb768f897b938d=1
+2016-08-10 21:46:40.729	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&1625a1aae0a94ad1aaa639aa071ee5df=1&passwd=skippy
+2016-08-10 21:46:40.478	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=scorpio&70ddc7e90ec7e79053b1cf0adcf6de5c=1
+2016-08-10 21:46:40.475	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=gordon&d1202e520d1654563d00831ce62994df=1
+2016-08-10 21:46:40.315	username=admin&ec6d8a7fab6853f510bb6513554b2633=1&task=login&return=aW5kZXgucGhw&option=com_login&passwd=asdfasdf
+2016-08-10 21:46:40.238	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=topgun&49e63c55a9730eee52c7ea0448de3a01=1
+2016-08-10 21:46:40.144	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=parker&29f5d545cf1382e919c6f43e330f9b71=1
+2016-08-10 21:46:40.063	username=admin&d94775758d15e5766bc5aa44f5f86b82=1&task=login&return=aW5kZXgucGhw&option=com_login&passwd=voodoo
+2016-08-10 21:46:39.980	username=admin&7ec95c630d23bd1a9af9800c5269c528=1&task=login&return=aW5kZXgucGhw&option=com_login&passwd=bond007
+2016-08-10 21:46:39.889	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=rush2112&073dc51708fde55c7ffd84c42e59daba=1
+2016-08-10 21:46:39.799	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=beer&13a7c2a99aa20981dfb3a363bc62686b=1
+2016-08-10 21:46:39.796	username=admin&task=login&return=aW5kZXgucGhw&option=com_login&passwd=power&92f6368dd3b0a937f93b3f9c47db3a66=1
+
+
+
+index=botsv1 sourcetype=stream:http dest_ip="192.168.250.70" http_method=POST uri=/joomla/administrator/index.php
+| rex field=form_data "passwd=(?<string>\w+)"
+| stats count by string
+| sort -count
+
+	count
+batman	2
+000000	1
+1111	1
+111111	1
+11111111	1
+112233	1
+1212	1
+121212	1
+123123	1
+1234	1
+12345	1
+123456	1
+1234567	1
+12345678	1
+123456789	1
+131313	1
+2000	1
+2112	1
+2222	1
+222222	1
+
+
+index=botsv1 sourcetype="stream:http" src_ip="192.168.250.70" http_method=GET
+| table _time, uri_path, dest_ip, site
+| sort _time
+
+_time	uri_path	dest_ip	site
+2016-08-10 21:48:09.478	/core/list.xml	108.161.187.134	update.joomla.org
+2016-08-10 21:48:09.600	/jed/list.xml	108.161.187.134	update.joomla.org
+2016-08-10 21:48:09.743	/language/translationlist_3.xml	108.161.187.134	update.joomla.org
+2016-08-10 21:48:09.958	/core/extensions/com_joomlaupdate.xml	108.161.187.134	update.joomla.org
+2016-08-10 21:48:11.581	/core/list.xml	108.161.187.134	update.joomla.org
+2016-08-10 21:48:11.679	/jed/list.xml	108.161.187.134	update.joomla.org
+2016-08-10 22:06:21.569	/poisonivy-is-coming-for-you-batman.jpeg	23.22.63.114	prankglassinebracket.jumpingcrab.com:1337
+2016-08-10 22:13:46.915	/poisonivy-is-coming-for-you-batman.jpeg	23.22.63.114	prankglassinebracket.jumpingcrab.com:1337
+
+index=botsv1 sourcetype="fgt_utm" srcip=40.80.148.42
+| table _time, filename, file_hash, srcip, dstip
+| sort _time
+
+
+_time	filename	file_hash	srcip	dstip
+2016-08-10 21:36:45	 	 	40.80.148.42	192.168.250.70
+2016-08-10 21:36:45	 	 	40.80.148.42	192.168.250.70
+2016-08-10 21:36:45	 	 	40.80.148.42	192.168.250.70
+2016-08-10 21:36:48	 	 	40.80.148.42	192.168.250.70
+2016-08-10 21:36:48	 	 	40.80.148.42	192.168.250.70
+2016-08-10 21:36:48	 	 	40.80.148.42	192.168.250.70
+2016-08-10 21:36:48	 	 	40.80.148.42	192.168.250.70
+2016-08-10 21:36:48	 	 	40.80.148.42	192.168.250.70
+2016-08-10 21:36:48	 	 	40.80.148.42	
+
+index=botsv1 sourcetype="fgt_utm" srcip=40.80.148.42
+| table _time, eventtype, subtype, msg, filename, file_hash, srcip, dstip
+| sort _time
+
+_time	eventtype	subtype	msg	filename	file_hash	srcip	dstip
+2016-08-10 21:36:45	
+ftnt_fgt
+ftnt_fgt_utm
+ftnt_fgt_webfilter
+webfilter	URL belongs to an allowed category in policy	 	 	40.80.148.42	192.168.250.70
+2016-08-10 21:36:45	
+ftnt_fgt
+ftnt_fgt_utm
+ftnt_fgt_webfilter
+webfilter	URL belongs to an allowed category in policy	 	 	40.80.148.42	192.168.250.70
+2016-08-10 21:36:45	
+ftnt_fgt
+ftnt_fgt_ips
+ftnt_fgt_utm
+ips	tools: Acunetix.Web.Vulnerability.Scanner,	 	 	40.80.148.42	192.168.250.70
+2016-08-10 21:36:48	
+ftnt_fgt
+ftnt_fgt_utm
+ftnt_fgt_webfilter
+webfilter	URL belongs to an allowed category in policy	 	 	40.80.148.42	192.168.250.70
+2016-08-10 21:36:48	
+ftnt_fgt
+ftnt_fgt_utm
+ftnt_fgt_webfilter
+webfilter	URL belongs to an allowed category in policy	 	 	40.80.148.42	192.168.250.70
+2016-08-10 21:36:48	
+ftnt_fgt
+ftnt_fgt_utm
+ftnt_fgt_webfilter
+webfilter	URL belongs to an allowed category in policy	 	 	40.80.148.42	192.168.250.70
+2016-08-10 21:36:48	
+ftnt_fgt
+ftnt_fgt_utm
+ftnt_fgt_webfilter
+webfilter	URL belongs to an allowed category in policy	 	 	40.80.148.42	192.168.250.70
+.......manymore
+
+
+index=botsv1 sourcetype="fgt_utm" dstip=23.22.63.114 OR srcip=23.22.63.114
+| table _time, eventtype, subtype, msg, filename, file_hash, srcip, dstip
+| sort _time
+
+Format
+Preview
+Prev12345678...Next
+_time	eventtype	subtype	msg	filename	file_hash	srcip	dstip
+_time	eventtype	subtype	msg	filename	file_hash	srcip	dstip
+2016-08-10 21:45:08	
+ftnt_fgt
+ftnt_fgt_utm
+ftnt_fgt_webfilter
+webfilter	URL belongs to an allowed category in policy	 	 	23.22.63.114	192.168.250.70
+2016-08-10 21:45:08	
+ftnt_fgt
+ftnt_fgt_utm
+ftnt_fgt_webfilter
+webfilter	URL belongs to an allowed category in policy	 	 	23.22.63.114	192.168.250.70
+2016-08-10 21:45:08	
+ftnt_fgt
+ftnt_fgt_utm
+ftnt_fgt_webfilter
+webfilter	URL belongs to an allowed category in policy	 	 	23.22.63.114	192.168.250.70
+2016-08-10 21:45:08	
+ftnt_fgt
+ftnt_fgt_utm
+ftnt_fgt_webfilter
+webfilter	URL belongs to an allowed category in policy	 	 	23.22.63.114	192.168.250.70
+2016-08-10 21:45:08	
+ftnt_fgt
+ftnt_fgt_utm
+ftnt_fgt_webfilter
+webfilter	URL belongs to an allowed category in policy	 	 	23.22.63.114	192.168.250.70
+2016-08-10 21:45:08	
+ftnt_fgt
+ftnt_fgt_utm
+ftnt_fgt_webfilter
+webfilter	URL belongs to an allowed category in policy	 	 	23.22.63.114	192.168.250.70
+2016-08-10 21:45:08	
+ftnt_fgt
+ftnt_fgt_utm
+ftnt_fgt_webfilter
+webfilter	URL belongs to an allowed category in policy	 	 	23.22.63.114	192.168.250.70
+2016-08-10 21:45:08	
+ftnt_fgt
+ftnt_fgt_utm
+ftnt_fgt_webfilter
+webfilter	URL belongs to an allowed category in policy	 	 	23.22.63.114	192.168.250.70
+2016-08-10 21:45:08	
+ftnt_fgt
+ftnt_fgt_utm
+ftnt_fgt_webfilter
+webfilter	URL belongs to an allowed category in policy	 
+....many more
