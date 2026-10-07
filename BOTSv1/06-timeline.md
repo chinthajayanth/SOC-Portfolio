@@ -14,13 +14,13 @@ defacement fit together as one attack.
 | 21:36:45 | 40.80.148.42 | Acunetix WVS scan begins against imreallynotbatman.com | [02-reconnaissance.md](02-reconnaissance.md) |
 | 21:36:45 | 40.80.148.42 | Fortinet IPS independently detects Acunetix scanner | [03-exploitation.md](03-exploitation.md), Step 5 |
 | 21:45:08–21:46:39 | 23.22.63.114 | Brute-force login attempts begin against `/joomla/administrator/index.php` (admin account, `Python-urllib/2.7`) | [03-exploitation.md](03-exploitation.md) |
-| **21:46:40.781** | **23.22.63.114** | **Brute force succeeds — password `batman` — authenticated admin dashboard HTML returned** | [04-defacement-confirmation.md](04-defacement-confirmation.md), Step 2 |
+| **21:46:40.781** | **23.22.63.114** | **Brute force succeeds — password `batman` — authenticated admin dashboard HTML returned** | [04-defacement-confirmation.md](04-defacement-confirmation.md),    Step 2 |
 | 21:48:05–21:48:11 | 40.80.148.42 | Routine Joomla/update.joomla.org traffic observed (benign, ruled out) | — |
 | 21:51:32–21:52:48 | 40.80.148.42 | LFI confirmed via `com_mailto` `tmpl` parameter (win.ini, boot.ini); `com_extplorer` file manager browsed; upload action issued to `/joomla` | [03-exploitation.md](03-exploitation.md) |
 | 21:55:22 | 23.22.63.114 | First beacon to `/joomla/agent.php` (planted backdoor) | [04-defacement-confirmation.md](04-defacement-confirmation.md) (C2 finding) |
 | 21:55:22–22:21:34 | 23.22.63.114 | 194 beacon requests to `agent.php` over ~26 minutes, disguised with forged Google/Translate referrer headers | — |
-| **22:06:21.569** | **23.22.63.114 / imreallynotbatman.com server** | **Web server retrieves `poisonivy-is-coming-for-you-batman.jpeg` from `prankglassinebracket.jumpingcrab.com:1337`** | [04-defacement-confirmation.md](04-defacement-confirmation.md), Step 4 |
-| 22:13:46.915 | 23.22.63.114 / imreallynotbatman.com server | Defacement image re-retrieved (retry/re-display) | [04-defacement-confirmation.md](04-defacement-confirmation.md), Step 4 |
+| **22:06:21.569** | **23.22.63.114 / imreallynotbatman.com server** | **Web server retrieves `poisonivy-is-coming-for-you-batman.jpeg` from `prankglassinebracket.jumpingcrab.com:1337`** | [04-defacement-confirmation.md](04-defacement-confirmation.md),    Step 4 |
+| 22:13:46.915 | 23.22.63.114 / imreallynotbatman.com server | Defacement image re-retrieved (retry/re-display) | [04-defacement-confirmation.md](04-defacement-confirmation.md),   Step 4 |
 
 ## Related — External Timeline
 
