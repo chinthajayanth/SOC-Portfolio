@@ -81,7 +81,6 @@ index=botsv1 sourcetype=stream:http dest_ip="192.168.250.70" http_method=POST ur
 | 111111 | 1 |
 | ... (all others) | 1 |
 
-**Screenshot:**
 ![](screenshots/04-03-password-frequency.png)
 
 **Explanation:** Every password in the brute-force list was attempted exactly
